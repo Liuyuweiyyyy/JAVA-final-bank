@@ -25,7 +25,7 @@ public class Main {
         for(int i = 0 ; i < banks.size() ; i++){
             String status = "";
             String s = (char)('A' + i) + "銀行 ";
-            String temp = banks.get(i).open ? String.format(" %d元", banks.get(i).getCoin()) : " 尚未開戶";
+            String temp = banks.get(i).getOpen() ? String.format(" %d元", banks.get(i).getCoin()) : " 尚未開戶";
             status += String.format("%s ", temp);
             status = s + ":" + status;
             total += String.format("%s\n", status);
@@ -41,7 +41,7 @@ public class Main {
     }
 
     static void printBank(){
-        bankArea.setText("\n" + total_banks());
+        bankArea.setText(total_banks() + "\n");
     }
 
     static void printMain(){
@@ -78,6 +78,17 @@ public class Main {
         transfer.add(bankTo);
         transfer.add(field2);
 
+        // 手續費按鈕
+        JComboBox<String> fromBox = new JComboBox<>(banksName);
+        JComboBox<String> toBox = new JComboBox<>(banksName);
+        JTextField feeField = new JTextField(8);
+
+        JPanel handling = new JPanel();
+        handling.add(fromBox);
+        handling.add(new JLabel("→"));
+        handling.add(toBox);
+        handling.add(feeField);
+
         // 視窗
         JFrame frame = new JFrame("Bank System");
         frame.setSize(600, 400);
@@ -96,7 +107,8 @@ public class Main {
 
         JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
                 new JScrollPane(moneyArea),
-                new JScrollPane(bankArea));
+                new JScrollPane(bankArea)
+        );
         split.setResizeWeight(0.1);
         split.setDividerSize(0); // 沒分隔線
         split.setEnabled(false); // 不能拖分隔線
@@ -152,7 +164,8 @@ public class Main {
                     int select2 = bankTo.getSelectedIndex();
                     try{
                         int money = Integer.parseInt(field2.getText());
-                        if(banks.get(select1).transfer_money(banks.get(select2), money))
+                        JOptionPane.showMessageDialog(null, "手續費 : " + banks.get(select1).getHandlingFee(select2) + "元\n總扣款 : " + (money + banks.get(select1).getHandlingFee(select2)) + "元");
+                        if(banks.get(select1).transfer_money(banks.get(select2),select2, money))
                             JOptionPane.showMessageDialog(null, "轉帳成功");
                         else
                             JOptionPane.showMessageDialog(null, "轉帳失敗");
@@ -163,11 +176,51 @@ public class Main {
                 }
             }
         });
+
+        JButton btn_handling = new JButton("手續費");
+        btn_handling.addActionListener(e -> {
+            int result = JOptionPane.showConfirmDialog(
+                    null,
+                    handling,
+                    "設定轉帳手續費",
+                    JOptionPane.OK_CANCEL_OPTION
+            );
+
+            if (result != JOptionPane.OK_OPTION)
+                return;
+
+            int from = fromBox.getSelectedIndex();
+            int to = toBox.getSelectedIndex();
+
+            if (from == to) {
+                JOptionPane.showMessageDialog(null, "同銀行不需手續費");
+                return;
+            }
+
+            try {
+                int fee = Integer.parseInt(feeField.getText());
+                if (fee <= 0) {
+                    JOptionPane.showMessageDialog(null, "手續費必須大於 0");
+                    return;
+                }
+
+                banks.get(from).setHandlingFee(to, fee);
+                JOptionPane.showMessageDialog(null,
+                        banksName.get(from) + " → " +
+                                banksName.get(to) + " 手續費設定為 : " + fee + "元"
+                );
+
+            } catch (NumberFormatException exception) {
+                JOptionPane.showMessageDialog(null, "輸入錯誤");
+            }
+        });
+
         JPanel sidebar = new JPanel();
         sidebar.setPreferredSize(new Dimension(60, 60));
         sidebar.setLayout(new FlowLayout());
         sidebar.add(btn_open);
         sidebar.add(btn_add);
+        sidebar.add(btn_handling);
 
         panel.add(sidebar, BorderLayout.SOUTH);
 
