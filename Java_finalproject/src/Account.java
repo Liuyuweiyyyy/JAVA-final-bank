@@ -5,6 +5,7 @@ public class Account{
     private static Account instance;
     private String currentUser = "遊客";
     private boolean isLoggedIn = false;
+    private Map<String, UserData> users;
 
     //儲存使用者資料
     private static class UserData {
@@ -25,8 +26,6 @@ public class Account{
             }
         }
     }
-
-    private Map<String, UserData> users;
 
     private Account() {
         users = new HashMap<>();
@@ -87,7 +86,6 @@ public class Account{
 
         currentUser = "遊客";
         isLoggedIn = false;
-
         loadUserData(); // 載入遊客模式的資料
     }
 
@@ -135,13 +133,10 @@ public class Account{
             if(user.isBankOpened[i]){
                 sb.append(user.bankBalances[i]).append("元");
             }else{
-                sb.append("未開戶");
+                sb.append("尚未開戶");
             }
             sb.append("\n");
         }
         return sb.toString();
     }
-
-    //檢查使用者是否存在
-    public boolean userExists(String username) { return users.containsKey(username); }
 }

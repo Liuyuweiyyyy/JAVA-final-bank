@@ -62,56 +62,12 @@ public class Main {
         printBank();
     }
 
-    //手續費設定對話框
-    static void showHandlingFeeDialog() {
-        JComboBox<String> fromBox = new JComboBox<>(banksName);
-        JComboBox<String> toBox = new JComboBox<>(banksName);
-        JTextField feeField = new JTextField(8);
-
-        JPanel handling = new JPanel();
-        handling.add(fromBox);
-        handling.add(new JLabel("→"));
-        handling.add(toBox);
-        handling.add(feeField);
-
-        int result = JOptionPane.showConfirmDialog(null, handling, "設定轉帳手續費", JOptionPane.OK_CANCEL_OPTION);
-
-        if(result != JOptionPane.OK_OPTION){ return; }
-
-        int from = fromBox.getSelectedIndex();
-        int to = toBox.getSelectedIndex();
-
-        if(from == to){
-            JOptionPane.showMessageDialog(null, "同銀行不需手續費");
-            return;
-        }
-
-        try {
-            int fee = Integer.parseInt(feeField.getText());
-            if(fee < 0){
-                JOptionPane.showMessageDialog(null, "手續費不能為負數");
-                return;
-            }
-            if(bankManager.setHandlingFee(from, to, fee)){
-                JOptionPane.showMessageDialog(null,
-                        banksName.get(from) + " → " +
-                                banksName.get(to) + " 手續費設定為 : " + fee + "元"
-                );
-            }else{
-                JOptionPane.showMessageDialog(null, "設定失敗，請確認是否在root模式");
-            }
-
-        }catch(NumberFormatException exception){
-            JOptionPane.showMessageDialog(null,"輸入錯誤");
-        }
-    }
-
-    //更新使用者標籤
-    static void updateUserLabel() {
-        if(bankManager.isRootMode()){
+    //更新所有標籤
+    static void updateLabels() {
+        if(bankManager.isRootMode()){ // root標籤
             userLabel.setText("當前使用者: root");
             userLabel.setForeground(Color.RED);
-        }else{
+        }else{ // 使用者標籤
             String user = userManager.getCurrentUser();
             userLabel.setText("當前使用者: " + user);
             if(user.equals("遊客")){
@@ -120,11 +76,6 @@ public class Main {
                 userLabel.setForeground(Color.BLUE);
             }
         }
-    }
-
-    //更新所有標籤
-    static void updateLabels() {
-        updateUserLabel();  //只更新使用者標籤
     }
 
     //更新按鈕面板
@@ -232,7 +183,7 @@ public class Main {
                         JOptionPane.showMessageDialog(null,
                                 "手續費 : " + fee + "元\n" +
                                         "總扣款 : " + (money + fee) + "元");
-                        if(banks.get(select1).transfer_money(banks.get(select2), select2, money)){
+                        if(banks.get(select1).transfer_money(banks.get(select2), money)){
                             JOptionPane.showMessageDialog(null, "轉帳成功");
                             userManager.saveUserData();
                         }else{
@@ -248,7 +199,7 @@ public class Main {
         return btn_add;
     }
 
-    //創存活期按鈕
+    //創建存錢按鈕
     static JButton createDepositButton(){
         JComboBox<String> depositBank = new JComboBox<>(banksName);
         JTextField depositField = new JTextField(10);
@@ -303,7 +254,58 @@ public class Main {
     //創建手續費設定按鈕
     static JButton createHandlingFeeButton(){
         JButton btn_handling = new JButton("設定手續費");
-        btn_handling.addActionListener(e -> showHandlingFeeDialog());
+        btn_handling.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JComboBox<String> fromBox = new JComboBox<>(banksName);
+                JComboBox<String> toBox = new JComboBox<>(banksName);
+                JTextField feeField = new JTextField(8);
+
+                JPanel handling = new JPanel();
+                handling.add(fromBox);
+                handling.add(new JLabel("→"));
+                handling.add(toBox);
+                handling.add(feeField);
+
+                int result = JOptionPane.showConfirmDialog(
+                        null,
+                        handling,
+                        "設定轉帳手續費",
+                        JOptionPane.OK_CANCEL_OPTION
+                );
+
+                if (result != JOptionPane.OK_OPTION) {
+                    return;
+                }
+
+                int from = fromBox.getSelectedIndex();
+                int to = toBox.getSelectedIndex();
+
+                if (from == to) {
+                    JOptionPane.showMessageDialog(null, "同銀行不需手續費");
+                    return;
+                }
+
+                try {
+                    int fee = Integer.parseInt(feeField.getText());
+                    if (fee < 0) {
+                        JOptionPane.showMessageDialog(null, "手續費不能為負數");
+                        return;
+                    }
+                    if (bankManager.setHandlingFee(from, to, fee)) {
+                        JOptionPane.showMessageDialog(null,
+                                banksName.get(from) + " → " +
+                                        banksName.get(to) + " 手續費設定為 : " + fee + "元"
+                        );
+                    } else {
+                        JOptionPane.showMessageDialog(null, "設定失敗，請確認是否在root模式");
+                    }
+
+                } catch (NumberFormatException exception) {
+                    JOptionPane.showMessageDialog(null, "輸入錯誤");
+                }
+            }
+        });
         return btn_handling;
     }
 
