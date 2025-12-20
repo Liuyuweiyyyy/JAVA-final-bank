@@ -6,38 +6,32 @@ public class BankManager{
     private static BankManager instance;
     private Map<Integer, Map<Integer, Integer>> handlingFees; //各個銀行間的手續費
     private boolean isRootMode = false;
+
     private BankManager() {
         handlingFees = new HashMap<>();
         for(int i = 0;i < 3;i++){
             handlingFees.put(i, new HashMap<>());
             for(int j = 0;j < 3;j++){
                 if(i != j){
-                    handlingFees.get(i).put(j,5);   // 初始化所有銀行間手續費為5
+                    handlingFees.get(i).put(j,5);   //預設所有銀行間手續費為5元
                 }
             }
         }
     }
+
     //public
-    //單例模式
-    public static BankManager getInstance() {
+    public static BankManager getInstance(){
         if(instance == null){ instance = new BankManager(); }
         return instance;
     }
+
     //設定手續費
-    public boolean setHandlingFee(int fromBankIndex, int toBankIndex, int fee) {
-        if(!isRootMode) {
-            System.out.println("尚未進入root管理模式");
-            return false;
-        }
-        if(fromBankIndex == toBankIndex) {
-            System.out.println("同銀行不需手續費");
-            return false;
-        }
-        if(fee < 0) {
-            System.out.println("手續費需大於等於0");
-            return false;
-        }
-        if(handlingFees.containsKey(fromBankIndex)) {
+    public boolean setHandlingFee(int fromBankIndex,int toBankIndex,int fee){
+        if(!isRootMode) { return false; }
+        if(fromBankIndex == toBankIndex){ return false; }   //同一家銀行不需要手續費
+        if(fee < 0) { return false; }
+        if(handlingFees.containsKey(fromBankIndex)){    //檢查外層Map是否有這個銀行索引
+            //.get為取得該銀行的內層Map .put為在內層Map設定手續費
             handlingFees.get(fromBankIndex).put(toBankIndex,fee);
             return true;
         }
@@ -45,40 +39,39 @@ public class BankManager{
     }
 
     //獲取手續費
-    public int getHandlingFee(int fromBankIndex, int toBankIndex) {
-        if(fromBankIndex == toBankIndex) return 0;
+    public int getHandlingFee(int fromBankIndex,int toBankIndex){
+        if(fromBankIndex == toBankIndex) { return 0; }
         if(handlingFees.containsKey(fromBankIndex)) {
             return handlingFees.get(fromBankIndex).getOrDefault(toBankIndex,0);
         }
         return 0;
     }
 
-    //進入root模式
-    public void enterRootMode() {
+    //進入root管理模式
+    public void enterRootMode(){
         isRootMode = true;
         System.out.println("進入root管理模式");
     }
 
     //退出root模式
-    public void exitRootMode() {
+    public void exitRootMode(){
         isRootMode = false;
         System.out.println("退出root管理模式");
     }
 
-    // 檢查是否為root模式
-    public boolean isRootMode() { return isRootMode; }
+    //檢查是否為root模式
+    public boolean isRootMode(){ return isRootMode; }
 
-    // 顯示所有手續費
+    //顯示所有手續費
     public String getAllHandlingFees() {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder();     //用於拼接字串
         sb.append("當前手續費設定:\n");
         for(int i = 0;i < 3;i++) {
             for(int j = 0;j < 3;j++) {
                 if(i != j) {
                     char fromBank = (char)('A' + i);
                     char toBank = (char)('A' + j);
-                    sb.append(String.format("銀行%c -> 銀行%c: %d元\n",
-                            fromBank, toBank, getHandlingFee(i,j)));
+                    sb.append(String.format("銀行%c -> 銀行%c: %d元\n",fromBank,toBank,getHandlingFee(i,j)));
                 }
             }
         }
