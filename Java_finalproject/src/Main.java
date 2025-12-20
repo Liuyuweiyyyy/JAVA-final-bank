@@ -8,11 +8,10 @@ import java.util.Vector;
 public class Main {
     static JTextArea moneyArea;
     static JTextArea bankArea;
-    static BankManager bankManager = BankManager.getInstance();
-    static Account userManager = Account.getInstance();
-
     static JPanel sidebar;
     static JLabel userLabel;
+    static BankManager bankManager = BankManager.getInstance();
+    static Account userManager = Account.getInstance();
 
     static ArrayList<Bank> banks = new ArrayList<>();
     static Vector<String> banksName = new Vector<>();
@@ -35,6 +34,7 @@ public class Main {
             for(int i = 0;i < banks.size();i++){
                 String status = "";
                 String s = (char)('A' + i) + "銀行 ";
+                //檢查是否已開戶 開戶顯示金額 未開戶顯示尚未開戶
                 String temp = banks.get(i).getOpen() ? String.format(" %d元", banks.get(i).getCoin()) : " 尚未開戶";
                 status += String.format("%s ", temp);
                 status = s + ":" + status;
@@ -47,7 +47,7 @@ public class Main {
     //顯示內容
     static void printMoney(){
         // 如果是root模式，總餘額顯示為null
-        if (bankManager.isRootMode()) {
+        if (bankManager.isRootMode()){
             moneyArea.setText("null");
         } else {
             int sum = total_money();
@@ -63,11 +63,13 @@ public class Main {
     }
 
     //更新所有標籤
-    static void updateLabels() {
-        if(bankManager.isRootMode()){ // root標籤
+    static void updateLabels(){
+        if(bankManager.isRootMode()){
+            //root標籤
             userLabel.setText("當前使用者: root");
             userLabel.setForeground(Color.RED);
-        }else{ // 使用者標籤
+        }else{
+            //使用者標籤
             String user = userManager.getCurrentUser();
             userLabel.setText("當前使用者: " + user);
             if(user.equals("遊客")){
@@ -80,58 +82,67 @@ public class Main {
 
     //更新按鈕面板
     static void updateSidebar(){
-        sidebar.removeAll();
+        sidebar.removeAll();    //清空側邊欄(下方按鈕區塊)
 
         //如果是root模式 顯示root相關按鈕
         if(bankManager.isRootMode()){
-            JButton btn_handling = createHandlingFeeButton();
-            JButton btn_viewFees = createViewFeesButton();
+            JButton btn_handling = createHandlingFeeButton();   //設定手續費按鈕
+            JButton btn_viewFees = createViewFeesButton();      //查看手續費按鈕
+
             sidebar.add(btn_handling);
             sidebar.add(btn_viewFees);
         }else{
-            JButton btn_open = createOpenButton();
-            JButton btn_add = createTransferButton();
-            JButton btn_deposit = createDepositButton();
+            JButton btn_open = createOpenButton();          //開戶按鈕
+            JButton btn_add = createTransferButton();       //轉帳按鈕
+            JButton btn_deposit = createDepositButton();    //存款按鈕
+            JButton btn_withdraw = createWithdrawButton();  //提款按鈕
 
             sidebar.add(btn_open);
             sidebar.add(btn_add);
             sidebar.add(btn_deposit);
+            sidebar.add(btn_withdraw);
         }
-        sidebar.revalidate();
-        sidebar.repaint();
+        sidebar.revalidate();   //重新驗證佈局
+        sidebar.repaint();      //重新繪製
     }
 
     //創建開戶按鈕
     static JButton createOpenButton(){
-        JComboBox<String> bankBox = new JComboBox<>(banksName);
-        JTextField field1 = new JTextField(10);
-        JPanel open = new JPanel();
+        //創建選擇銀行下拉選單和輸入金額欄位
+        JComboBox<String> bankBox = new JComboBox<>(banksName); //銀行選擇下拉選單
+        JTextField field1 = new JTextField(10);         //金額輸入欄位
+        JPanel open = new JPanel();                             //裝載元件的面板
         open.add(bankBox);
         open.add(field1);
 
+        //創建開戶按鈕
         JButton btn_open = new JButton("開戶");
         btn_open.addActionListener(new ActionListener(){
             @Override
             public void actionPerformed(ActionEvent e){
+                /*
                 //root模式下 不能開戶
                 if(bankManager.isRootMode()){
                     JOptionPane.showMessageDialog(null, "root模式下不能開戶");
                     return;
                 }
+                */
 
+                //重置選擇和輸入
                 bankBox.setSelectedIndex(0);
                 field1.setText("");
 
+                //顯示對話框
                 int result = JOptionPane.showConfirmDialog(null, open, "請選擇開戶銀行並輸入金額", JOptionPane.OK_CANCEL_OPTION);
 
                 if(result == JOptionPane.OK_OPTION){
-                    int select = bankBox.getSelectedIndex();
+                    int select = bankBox.getSelectedIndex();    //取得選擇的銀行索引
                     try{
                         int money = Integer.parseInt(field1.getText());
-                        if(banks.get(select).open_an_account(money)) {
+                        if(banks.get(select).open_an_account(money)){
                             JOptionPane.showMessageDialog(null, "開戶成功");
                             userManager.saveUserData();
-                        }else {
+                        }else{
                             JOptionPane.showMessageDialog(null, "已經開戶");
                         }
                         printMain();
@@ -150,6 +161,7 @@ public class Main {
         JComboBox<String> bankTo = new JComboBox<>(banksName);
         JTextField field2 = new JTextField(10);
         JPanel transfer = new JPanel();
+
         transfer.add(bankFrom);
         transfer.add(new JLabel("→"));
         transfer.add(bankTo);
@@ -160,30 +172,26 @@ public class Main {
             @Override
             public void actionPerformed(ActionEvent e){
                 // 如果在root模式，不能轉帳
+                /*
                 if(bankManager.isRootMode()){
                     JOptionPane.showMessageDialog(null, "root模式下不能轉帳");
                     return;
                 }
+                */
 
                 bankFrom.setSelectedIndex(0);
                 bankTo.setSelectedIndex(0);
                 field2.setText("");
-                int result = JOptionPane.showConfirmDialog(
-                        null,
-                        transfer,
-                        "請選擇兩間銀行並輸入金額",
-                        JOptionPane.OK_CANCEL_OPTION
-                );
+                int result = JOptionPane.showConfirmDialog(null, transfer,"請選擇兩間銀行並輸入金額",JOptionPane.OK_CANCEL_OPTION);
                 if(result == JOptionPane.OK_OPTION){
                     int select1 = bankFrom.getSelectedIndex();
                     int select2 = bankTo.getSelectedIndex();
                     try{
                         int money = Integer.parseInt(field2.getText());
                         int fee = bankManager.getHandlingFee(select1, select2);
-                        JOptionPane.showMessageDialog(null,
-                                "手續費 : " + fee + "元\n" +
-                                        "總扣款 : " + (money + fee) + "元");
-                        if(banks.get(select1).transfer_money(banks.get(select2), money)){
+                        //顯示手續費資訊
+                        JOptionPane.showMessageDialog(null,"手續費 : " + fee + "元\n" + "總扣款 : " + (money + fee) + "元");
+                        if(banks.get(select1).transferMoney(banks.get(select2), money)){
                             JOptionPane.showMessageDialog(null, "轉帳成功");
                             userManager.saveUserData();
                         }else{
@@ -204,6 +212,7 @@ public class Main {
         JComboBox<String> depositBank = new JComboBox<>(banksName);
         JTextField depositField = new JTextField(10);
         JPanel depositPanel = new JPanel();
+
         depositPanel.add(depositBank);
         depositPanel.add(depositField);
 
@@ -211,20 +220,17 @@ public class Main {
         btn_deposit.addActionListener(new ActionListener(){
             @Override
             public void actionPerformed(ActionEvent e){
+                /*
                 if (bankManager.isRootMode()) {
                     JOptionPane.showMessageDialog(null, "root模式下不能存錢");
                     return;
                 }
+                */
 
                 depositBank.setSelectedIndex(0);
                 depositField.setText("");
 
-                int result = JOptionPane.showConfirmDialog(
-                        null,
-                        depositPanel,
-                        "請選擇銀行並輸入存款金額",
-                        JOptionPane.OK_CANCEL_OPTION
-                );
+                int result = JOptionPane.showConfirmDialog(null,depositPanel,"請選擇銀行並輸入存款金額", JOptionPane.OK_CANCEL_OPTION);
 
                 if(result == JOptionPane.OK_OPTION){
                     int select = depositBank.getSelectedIndex();
@@ -234,11 +240,11 @@ public class Main {
                             JOptionPane.showMessageDialog(null, "存款金額必須大於0");
                             return;
                         }
-                        if(banks.get(select).saveMoney(money)) {
+                        if(banks.get(select).saveMoney(money)){
                             JOptionPane.showMessageDialog(null, "存款成功");
                             // 存款成功後儲存資料
                             userManager.saveUserData();
-                        } else {
+                        }else{
                             JOptionPane.showMessageDialog(null, "存款失敗，請確認該銀行是否已開戶");
                         }
                         printMain();
@@ -251,6 +257,55 @@ public class Main {
         return btn_deposit;
     }
 
+    //領錢按鈕
+    static JButton createWithdrawButton(){
+        JComboBox<String> withdrawBank = new JComboBox<>(banksName);
+        JTextField withdrawField = new JTextField(10);
+        JPanel withdrawPanel = new JPanel();
+
+        withdrawPanel.add(withdrawBank);
+        withdrawPanel.add(withdrawField);
+
+        JButton btn_withdraw = new JButton("領錢");
+        btn_withdraw.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e){
+                /*
+                if (bankManager.isRootMode()) {
+                    JOptionPane.showMessageDialog(null, "root模式下不能領錢");
+                    return;
+                }
+                */
+
+                withdrawBank.setSelectedIndex(0);
+                withdrawField.setText("");
+
+                int result = JOptionPane.showConfirmDialog(null,withdrawPanel,"請選擇銀行並輸入領取金額", JOptionPane.OK_CANCEL_OPTION);
+
+                if(result == JOptionPane.OK_OPTION){
+                    int select = withdrawBank.getSelectedIndex();
+                    try{
+                        int money = Integer.parseInt(withdrawField.getText());
+                        if(money <= 0) {
+                            JOptionPane.showMessageDialog(null, "領取金額必須大於0");
+                            return;
+                        }
+                        if(banks.get(select).receiveMoney(money)){
+                            JOptionPane.showMessageDialog(null, "領錢成功");
+                            userManager.saveUserData();     //儲存資料
+                        }else{
+                            JOptionPane.showMessageDialog(null, "領錢失敗，請確認該銀行是否已開戶且餘額足夠");
+                        }
+                        printMain();
+                    }catch(NumberFormatException exception){
+                        JOptionPane.showMessageDialog(null, "輸入錯誤");
+                    }
+                }
+            }
+        });
+        return btn_withdraw;
+    }
+
     //創建手續費設定按鈕
     static JButton createHandlingFeeButton(){
         JButton btn_handling = new JButton("設定手續費");
@@ -260,48 +315,39 @@ public class Main {
                 JComboBox<String> fromBox = new JComboBox<>(banksName);
                 JComboBox<String> toBox = new JComboBox<>(banksName);
                 JTextField feeField = new JTextField(8);
-
                 JPanel handling = new JPanel();
+
                 handling.add(fromBox);
                 handling.add(new JLabel("→"));
                 handling.add(toBox);
                 handling.add(feeField);
 
-                int result = JOptionPane.showConfirmDialog(
-                        null,
-                        handling,
-                        "設定轉帳手續費",
-                        JOptionPane.OK_CANCEL_OPTION
-                );
+                int result = JOptionPane.showConfirmDialog(null,handling, "設定轉帳手續費", JOptionPane.OK_CANCEL_OPTION);
 
-                if (result != JOptionPane.OK_OPTION) {
-                    return;
-                }
+                if(result != JOptionPane.OK_OPTION){ return; }
 
                 int from = fromBox.getSelectedIndex();
                 int to = toBox.getSelectedIndex();
 
-                if (from == to) {
+                //這行不能註解 有用
+                if(from == to){
                     JOptionPane.showMessageDialog(null, "同銀行不需手續費");
                     return;
                 }
 
-                try {
+                try{
                     int fee = Integer.parseInt(feeField.getText());
-                    if (fee < 0) {
+                    if(fee < 0){
                         JOptionPane.showMessageDialog(null, "手續費不能為負數");
                         return;
                     }
-                    if (bankManager.setHandlingFee(from, to, fee)) {
-                        JOptionPane.showMessageDialog(null,
-                                banksName.get(from) + " → " +
-                                        banksName.get(to) + " 手續費設定為 : " + fee + "元"
-                        );
-                    } else {
-                        JOptionPane.showMessageDialog(null, "設定失敗，請確認是否在root模式");
+                    if(bankManager.setHandlingFee(from,to,fee)){
+                        JOptionPane.showMessageDialog(null,banksName.get(from) + " → " + banksName.get(to) + " 手續費設定為 : " + fee + "元");
+                    }else{
+                        JOptionPane.showMessageDialog(null, "設定失敗");
                     }
 
-                } catch (NumberFormatException exception) {
+                }catch(NumberFormatException exception){
                     JOptionPane.showMessageDialog(null, "輸入錯誤");
                 }
             }
@@ -312,9 +358,7 @@ public class Main {
     //創建查看手續費按鈕
     static JButton createViewFeesButton() {
         JButton btn_viewFees = new JButton("查看手續費");
-        btn_viewFees.addActionListener(e -> {
-            JOptionPane.showMessageDialog(null, bankManager.getAllHandlingFees());
-        });
+        btn_viewFees.addActionListener(e -> {JOptionPane.showMessageDialog(null, bankManager.getAllHandlingFees());});
         return btn_viewFees;
     }
 
@@ -325,12 +369,13 @@ public class Main {
             return;
         }
 
+        //建立分頁面板
         JTabbedPane tabbedPane = new JTabbedPane();
 
-        // 登入面板
+        //登入面板
         JPanel loginPanel = new JPanel(new GridLayout(3, 2, 5, 5));
         JTextField loginUserField = new JTextField();
-        JPasswordField loginPassField = new JPasswordField();
+        JPasswordField loginPassField = new JPasswordField();   //密碼輸入框(隱藏顯示
 
         loginPanel.add(new JLabel("使用者名稱:"));
         loginPanel.add(loginUserField);
@@ -389,8 +434,8 @@ public class Main {
 
         //登入按鈕事件
         loginButton.addActionListener(e ->{
-            String username = loginUserField.getText().trim();
-            String password = new String(loginPassField.getPassword());
+            String username = loginUserField.getText().trim();              //去除空白
+            String password = new String(loginPassField.getPassword());     //取得密碼
 
             if(username.isEmpty() || password.isEmpty()){
                 JOptionPane.showMessageDialog(dialog, "請輸入使用者名稱和密碼");
@@ -399,10 +444,10 @@ public class Main {
 
             if(userManager.login(username, password)){
                 JOptionPane.showMessageDialog(dialog, "登入成功！");
-                userManager.loadUserData(); // 載入使用者資料
+                userManager.loadUserData(); //載入使用者資料
                 updateLabels();
                 printMain();
-                dialog.dispose();
+                dialog.dispose();           //關閉對話框
             }else{
                 JOptionPane.showMessageDialog(dialog, "登入失敗，請檢查使用者名稱和密碼");
             }
@@ -443,7 +488,7 @@ public class Main {
         //遊客模式按鈕事件
         guestButton.addActionListener(e ->{
             userManager.switchToGuest();
-            // 切換到遊客模式後，會自動載入遊客上次的資料，不需要手動 reset
+            //切換到遊客模式後 自動載入遊客上次的資料
             updateLabels();
             printMain();
             dialog.dispose();
@@ -451,10 +496,7 @@ public class Main {
 
         //登出按鈕事件
         logoutButton.addActionListener(e ->{
-            int confirm = JOptionPane.showConfirmDialog(dialog,
-                    "確定要登出嗎？",
-                    "確認登出",
-                    JOptionPane.YES_NO_OPTION);
+            int confirm = JOptionPane.showConfirmDialog(dialog,"確定要登出嗎？","確認登出",JOptionPane.YES_NO_OPTION);
 
             if(confirm == JOptionPane.YES_OPTION){
                 //登出前會儲存當前登入者資料，並自動切換到遊客模式並載入遊客資料
@@ -485,27 +527,28 @@ public class Main {
         banksName.add("C銀行");
 
         //GUI介面
+        //創建主視窗
         JFrame frame = new JFrame("Bank System");
         frame.setSize(600, 400);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);   //關閉時結束程式
 
+        //好像沒用到
         //視窗關閉事件，儲存使用者資料
         frame.addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-                // 如果不是root模式，才儲存當前使用者資料（遊客模式也會儲存）
-                if (!bankManager.isRootMode()) {
-                    userManager.saveUserData();
-                }
+                //root模式 不儲存資料
+                if (!bankManager.isRootMode()) { userManager.saveUserData(); }
             }
         });
 
+        //創建主面板
         JPanel mainPanel = new JPanel(new BorderLayout());
 
-        //創建上半部分面板，包含使用者標籤和總餘額
+        //創建上半部分面板 包含使用者標籤和總餘額
         JPanel topPanel = new JPanel(new BorderLayout());
 
-        //創建使用者標籤（保留「當前使用者:」前綴）
+        //創建使用者標籤
         userLabel = new JLabel("當前使用者: 遊客");
         userLabel.setFont(new Font("新細明體", Font.BOLD, 14));
         userLabel.setForeground(Color.GRAY);
@@ -517,22 +560,22 @@ public class Main {
         //創建總餘額顯示區域
         moneyArea = new JTextArea();
         moneyArea.setFont(new Font("新細明體", Font.PLAIN, 18));
-        moneyArea.setEditable(false);
-        moneyArea.setFocusable(false);
+        moneyArea.setEditable(false);       //不能編輯
+        moneyArea.setFocusable(false);      //不能被滑鼠點擊
         moneyArea.setText("0元");
 
-        //創建一個面板來放置使用者標籤（左側）
+        //創建使用者面板 顯示使用者標籤
         JPanel userPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         userPanel.add(userLabel);
 
-        //修正 UI 佈局：將總餘額標籤和金額顯示區域放在右側
+        //創建餘額顯示面板
         JPanel balanceDisplayPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         balanceDisplayPanel.add(balanceLabel);
         balanceDisplayPanel.add(moneyArea);
 
         //將所有元件添加到topPanel
         topPanel.add(userPanel, BorderLayout.WEST);
-        topPanel.add(balanceDisplayPanel, BorderLayout.EAST); // 使用 EAST 讓其靠右
+        topPanel.add(balanceDisplayPanel, BorderLayout.EAST);   //EAST使其靠右
 
         //創建銀行資訊顯示區域
         bankArea = new JTextArea();
@@ -540,7 +583,7 @@ public class Main {
         bankArea.setEditable(false);
         bankArea.setFocusable(false);
 
-        //創建主內容面板，包含topPanel和bankArea
+        //創建內容面板
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.add(topPanel, BorderLayout.NORTH);
         contentPanel.add(new JScrollPane(bankArea), BorderLayout.CENTER);
@@ -561,54 +604,45 @@ public class Main {
         JMenuItem exitItem = new JMenuItem("退出");
 
         popupMenu.add(switchAccountItem);
-        popupMenu.addSeparator();
+        popupMenu.addSeparator();       //分隔線
         popupMenu.add(rootModeItem);
         popupMenu.add(exitRootModeItem);
         popupMenu.addSeparator();
         popupMenu.add(exitItem);
 
         //設定按鈕事件
-        settingsBtn.addActionListener(e -> {
-            popupMenu.show(settingsBtn, 0, settingsBtn.getHeight());
-        });
+        settingsBtn.addActionListener(e -> {popupMenu.show(settingsBtn, 0, settingsBtn.getHeight());});
 
         //選單項目事件
-        switchAccountItem.addActionListener(e -> {
-            showSwitchAccountDialog();
-        });
+        switchAccountItem.addActionListener(e -> {showSwitchAccountDialog();});
 
         rootModeItem.addActionListener(e ->{
             bankManager.enterRootMode();
             JOptionPane.showMessageDialog(null, "已進入root管理模式");
-            updateLabels(); // 更新標籤（顯示為root）
-            updateSidebar(); // 更新按鈕（只顯示root相關按鈕）
-            printMain(); // 重新顯示（銀行金額顯示為null）
+            updateLabels();
+            updateSidebar();
+            printMain();
         });
 
         exitRootModeItem.addActionListener(e ->{
             bankManager.exitRootMode();
             JOptionPane.showMessageDialog(null, "已退出root管理模式");
-            updateLabels(); // 更新標籤（恢復顯示使用者）
-            updateSidebar(); // 更新按鈕（恢復顯示正常按鈕）
-            printMain(); // 重新顯示（恢復正常顯示銀行金額）
+            updateLabels();
+            updateSidebar();
+            printMain();
         });
 
         exitItem.addActionListener(e -> {
-            // 如果不是root模式，儲存使用者資料
+            //如果不是root模式 儲存使用者資料
             if(!bankManager.isRootMode()){ userManager.saveUserData(); }
-            int confirm = JOptionPane.showConfirmDialog(
-                    null,
-                    "確定要退出程式嗎？",
-                    "確認退出",
-                    JOptionPane.YES_NO_OPTION
-            );
+            int confirm = JOptionPane.showConfirmDialog(null,"確定要退出程式嗎？","確認退出",JOptionPane.YES_NO_OPTION);
             if(confirm == JOptionPane.YES_OPTION){ System.exit(0); }
         });
 
         //初始化側邊欄
         sidebar = new JPanel();
         sidebar.setPreferredSize(new Dimension(60, 60));
-        sidebar.setLayout(new FlowLayout());
+        sidebar.setLayout(new FlowLayout());    //流式佈局
 
         //初始狀態為User模式
         updateSidebar();
@@ -617,10 +651,10 @@ public class Main {
         mainPanel.add(sidebar, BorderLayout.SOUTH);
 
         //設定視窗選單列
-        frame.setJMenuBar(menuBar);
-        frame.add(mainPanel);
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
+        frame.setJMenuBar(menuBar);             //設定選單列
+        frame.add(mainPanel);                   //加入主面板
+        frame.setLocationRelativeTo(null);      //視窗置中
+        frame.setVisible(true);                 //顯示視窗
 
         // 程式啟動時，載入遊客資料（如果已存在）
         userManager.switchToGuest();
