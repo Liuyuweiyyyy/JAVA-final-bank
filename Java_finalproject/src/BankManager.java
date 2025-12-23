@@ -29,7 +29,7 @@ public class BankManager{
     public boolean setHandlingFee(int fromBankIndex,int toBankIndex,int fee){
         if(!isRootMode) { return false; }
         if(fromBankIndex == toBankIndex){ return false; }   //同一家銀行不需要手續費
-        if(fee < 0) { return false; }
+        if(fee < 0){ return false; }
         if(handlingFees.containsKey(fromBankIndex)){    //檢查外層Map是否有這個銀行索引
             //.get為取得該銀行的內層Map .put為在內層Map設定手續費
             handlingFees.get(fromBankIndex).put(toBankIndex,fee);
@@ -40,8 +40,8 @@ public class BankManager{
 
     //獲取手續費
     public int getHandlingFee(int fromBankIndex,int toBankIndex){
-        if(fromBankIndex == toBankIndex) { return 0; }
-        if(handlingFees.containsKey(fromBankIndex)) {
+        if(fromBankIndex == toBankIndex){ return 0; }
+        if(handlingFees.containsKey(fromBankIndex)){
             return handlingFees.get(fromBankIndex).getOrDefault(toBankIndex,0);
         }
         return 0;
@@ -77,4 +77,5 @@ public class BankManager{
         }
         return sb.toString();
     }
+
 }

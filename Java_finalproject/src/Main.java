@@ -143,7 +143,7 @@ public class Main {
                             JOptionPane.showMessageDialog(null, "開戶成功");
                             userManager.saveUserData();
                         }else{
-                            JOptionPane.showMessageDialog(null, "已經開戶");
+                            JOptionPane.showMessageDialog(null, "錯誤");
                         }
                         printMain();
                     }catch(NumberFormatException exception){

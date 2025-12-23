@@ -27,7 +27,7 @@ public class Bank{
 
     //開戶
     public boolean open_an_account(int money){
-        if(open){ return false; }
+        if(open || money < 0){ return false; }
         this.coin = money;
         this.open = true;
         return true;
@@ -43,9 +43,9 @@ public class Bank{
 
     //領錢
     public boolean receiveMoney(int money){
-        if(!open) { return false; }
-        if(money <= 0) { return false; }
-        if(this.coin < money) { return false; }
+        if(!open){ return false; }
+        if(money <= 0){ return false; }
+        if(this.coin < money){ return false; }
         this.coin -= money;
         return true;
     }
@@ -53,6 +53,7 @@ public class Bank{
     //轉帳
     public boolean transferMoney(Bank to, int money){
         //總扣款 金額+手續費
+        if(money < 0){ return false; }
         int totalDeduction = money + bankManager.getHandlingFee(getBankIndex(this), getBankIndex(to));
         //檢查雙方是否都已經開戶且餘額足夠
         if(!this.getOpen() || !to.getOpen() || this.getCoin() < totalDeduction){ return false; }
